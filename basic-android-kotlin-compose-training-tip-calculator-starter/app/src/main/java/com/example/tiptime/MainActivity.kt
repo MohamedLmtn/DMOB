@@ -26,6 +26,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,6 +37,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -47,6 +49,7 @@ import com.example.tiptime.ui.theme.TipTimeTheme
 import java.text.NumberFormat
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.text.input.KeyboardType
+import kotlin.jvm.internal.Intrinsics.Kotlin
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,7 +70,9 @@ class MainActivity : ComponentActivity() {
 @SuppressLint("SuspiciousIndentation")
 @Composable
 fun TipTimeLayout() {
-
+    var boolval by remember {
+        mutableStateOf(false)
+    }
     Column(
         modifier = Modifier
             .statusBarsPadding()
@@ -94,13 +99,32 @@ fun TipTimeLayout() {
                 .padding(bottom = 15.dp)
                 .fillMaxWidth()
         )
+
+        switcheditfun(roundUp = boolval,
+            onRoundUpChanged = { boolval = it },
+            modifier = Modifier)
         Text(
-            text = stringResource(R.string.tip_amount, calculateTip(amount,discount,nbpersonne)),
+            text = stringResource(R.string.tip_amount, calculateTip(amount,discount,nbpersonne,boolval)),
             style = MaterialTheme.typography.displaySmall
         )
 
         Spacer(modifier = Modifier.height(150.dp))
     }
+}
+@Composable
+fun switcheditfun(roundUp : Boolean,
+                  onRoundUpChanged : (Boolean) -> Unit,
+                  modifier: Modifier = Modifier): Boolean {
+
+    Row(modifier = Modifier
+        .padding(bottom = 32.dp)
+        .fillMaxWidth()) {
+        Text(text = "Round up the tip?")
+
+
+        Switch(checked = roundUp, onCheckedChange = onRoundUpChanged)
+    }
+    return roundUp
 }
 
 @SuppressLint("UnrememberedMutableState")
@@ -151,7 +175,7 @@ fun edittippercent(modifier: Modifier) : Double {
         modifier = Modifier
 
     )
-return discount
+    return discount
 }
 
 @Composable
@@ -173,7 +197,7 @@ fun editnbpersonne(modifier : Modifier) : Int {
 
     )
 
-return numberofpersonne
+    return numberofpersonne
 
 }
 /**
@@ -181,8 +205,11 @@ return numberofpersonne
  * according to the local currency.
  * Example would be "$10.00".
  */
-private fun calculateTip(amount: Double, tipPercent: Double = 15.0,numberofpersonne : Int = 1): String {
-    val tip = (tipPercent / 100 * amount) * numberofpersonne
+private fun calculateTip(amount: Double, tipPercent: Double = 15.0,numberofpersonne : Int = 1,boolval : Boolean): String {
+    var tip = (tipPercent / 100 * amount) * numberofpersonne
+    if(boolval){
+        tip = Math.ceil(tip)
+    }
     return NumberFormat.getCurrencyInstance().format(tip)
 }
 
